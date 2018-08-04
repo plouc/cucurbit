@@ -3,6 +3,11 @@
   "version": "1.0.0-alpha.0",
   "main": "index.js",
   "license": "MIT",
+  "files": [
+    "ui",
+    "src",
+    "index.js"
+  ],
   "dependencies": {
     "cors": "^2.8.4",
     "cucumber": "^4.2.1",
