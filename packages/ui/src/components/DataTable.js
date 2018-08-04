@@ -21,8 +21,6 @@ export default class DataTable extends Component {
             gridTemplateColumns: firstRow.cells.map(() => '1fr').join(' '),
         }
 
-        console.log(firstRow, gridStyle)
-
         return (
             <Container style={gridStyle}>
                 {dataTable.rows.map((row, i) => {

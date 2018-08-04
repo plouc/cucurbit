@@ -25,7 +25,7 @@ export default class Editor extends Component {
                     showGutter={false}
                     highlightActiveLine={true}
                     editorProps={{ $blockScrolling: true }}
-                    fontSize={14}
+                    fontSize={13}
                     wrapEnabled={false}
                     width="100%"
                     height="100%"
