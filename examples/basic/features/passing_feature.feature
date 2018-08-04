@@ -13,13 +13,13 @@ Feature: Passing feature
         Then response status code should be 200
 
     Scenario: Fetching todo 3
-        When I GET https://jsonplaceholder.typicode.com/todos/1
+        When I GET https://jsonplaceholder.typicode.com/todos/3
         Then response status code should be 200
 
     Scenario: Fetching todo 4
-        When I GET https://jsonplaceholder.typicode.com/todos/1
+        When I GET https://jsonplaceholder.typicode.com/todos/4
         Then response status code should be 200
 
     Scenario: Fetching todo 5
-        When I GET https://jsonplaceholder.typicode.com/todos/1
+        When I GET https://jsonplaceholder.typicode.com/todos/5
         Then response status code should be 200
