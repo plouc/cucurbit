@@ -1,10 +1,10 @@
 {
   "name": "cucurbit-basic-example",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "private": true,
   "main": "run.js",
   "devDependencies": {
     "@ekino/veggies": "^0.6.0",
-    "cucurbit-server": "^1.0.0-alpha.2"
+    "cucurbit-server": "^1.0.0-alpha.3"
   }
 }
