@@ -10,6 +10,5 @@
   "workspaces": [
     "packages/*",
     "examples/*"
-  ],
-  "name": "cucumber-gui"
+  ]
 }
