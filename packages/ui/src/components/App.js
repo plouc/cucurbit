@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import styled, { injectGlobal } from 'styled-components'
-import { getFeaturesDir, loadFeature } from '../api'
+import { getFeaturesDir, loadFeature, runTests } from '../api'
 import {
     PANEL_EXPLORER,
     PANEL_EDITOR,
@@ -56,9 +56,10 @@ export default class App extends Component {
 
         this.editor = React.createRef()
         this.state = {
-            currentFeature: null,
-            featureDoc: null,
-            featureText: '',
+            file: null,
+            feature: null,
+            report: null,
+            isRunning: false,
             panels: [PANEL_EXPLORER, PANEL_INFO],
         }
     }
@@ -74,18 +75,11 @@ export default class App extends Component {
         })
     }
 
-    handleFileSelect = node => {
-        this.setState({
-            currentFeature: node,
-            featureText: '',
-            featureDoc: null,
-        })
+    handleFileSelect = file => {
+        this.setState({ file, feature: null })
 
-        loadFeature(node.path).then(feature => {
-            this.setState({
-                featureText: feature.text,
-                featureDoc: feature.document,
-            })
+        loadFeature(file.uri).then(feature => {
+            this.setState({ feature })
         })
     }
 
@@ -102,18 +96,38 @@ export default class App extends Component {
         }
     }
 
+    runTests = () => {
+        this.setState({
+            isRunning: true,
+        })
+
+        runTests().then(report => {
+            this.setState({
+                report,
+                isRunning: false,
+            })
+        })
+    }
+
     render() {
-        const { panels, featuresDir, currentFeature, featureText, featureDoc } = this.state
+        const { report, panels, featuresDir, file, feature, isRunning } = this.state
 
         const layout = computeLayout(panels)
 
         return (
             <Grid style={layout.grid}>
-                <AppBar panels={panels} onPanelToggle={this.handlePanelToggle} />
+                <AppBar
+                    currentUri={file ? file.uri : null}
+                    runTests={this.runTests}
+                    isRunning={isRunning}
+                    panels={panels}
+                    onPanelToggle={this.handlePanelToggle}
+                />
                 {panels.includes(PANEL_EXPLORER) && (
                     <Explorer
                         style={layout.panels[PANEL_EXPLORER]}
                         dir={featuresDir}
+                        report={report}
                         onSelect={this.handleFileSelect}
                     />
                 )}
@@ -121,12 +135,15 @@ export default class App extends Component {
                     <Editor
                         style={layout.panels[PANEL_EDITOR]}
                         ref={this.editor}
-                        file={currentFeature}
-                        featureText={featureText}
+                        featureSource={feature ? feature.source : ''}
                     />
                 )}
                 {panels.includes(PANEL_INFO) && (
-                    <FeatureDoc style={layout.panels[PANEL_INFO]} document={featureDoc} />
+                    <FeatureDoc
+                        style={layout.panels[PANEL_INFO]}
+                        feature={feature}
+                        report={report}
+                    />
                 )}
                 {panels.includes(PANEL_CONSOLE) && (
                     <div style={layout.panels[PANEL_CONSOLE]}>CONSOLE</div>

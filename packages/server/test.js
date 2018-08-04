@@ -1,47 +1,16 @@
-const { inspect } = require('util')
-const a = require('cucumber/lib/support_code_library_builder')
-const { getTree } = require('./file_system')
-
-console.log(a)
-
-const dbg = subject => {
-    console.log(inspect(subject, { depth: null, colors: true }))
-}
+const { promisify } = require('util')
+const resolve = promisify(require('resolve'))
+const Registry = require('./src/registry')
 
 const run = async () => {
-    const tree = await getTree()
-    dbg(tree)
+    const r = await resolve('cucumber')
+    console.log(r)
+    const registry = new Registry({
+        cwd: 'fixtures',
+    })
+
+    const tree = await registry.getTree()
+    console.log(require('util').inspect(tree, { depth: null, colors: true }))
 }
 
 run()
-
-/*
-
-const fs = require('fs')
-const { Compiler, Parser } = require('gherkin')
-
-
-
-const compiler = new Compiler()
-const parser = new Parser()
-
-
-
-fs.readFile('./fixtures/test.feature', (err, data) => {
-    if (err) throw err;
-    console.log(data.toString())
-
-    const d = parser.parse(data.toString())
-    console.log(inspect(d, { depth: null, color: true }))
-});
-
-/*
-const { getTree } = require('./file_system')
-
-const run = async () => {
-    const tree = await getTree()
-    console.log(inspect(tree, { depth: null, color: true }))
-}
-
-run()
-*/

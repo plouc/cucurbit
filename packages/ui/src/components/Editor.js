@@ -3,7 +3,6 @@ import 'brace'
 import AceEditor from 'react-ace'
 import 'brace/mode/gherkin'
 import 'brace/theme/solarized_dark'
-import EditorFilePath from './EditorFilePath'
 
 export default class Editor extends Component {
     handleChange = newValue => {
@@ -11,16 +10,15 @@ export default class Editor extends Component {
     }
 
     render() {
-        const { file, featureText, style } = this.props
+        const { featureSource, style } = this.props
 
         return (
             <div style={{ ...style, overflow: 'hidden' }}>
-                <EditorFilePath path={file && file.path} />
                 <AceEditor
                     ref="ace"
                     mode="gherkin"
                     theme="solarized_dark"
-                    value={featureText}
+                    value={featureSource}
                     onChange={this.handleChange}
                     name="editor"
                     showPrintMargin={false}

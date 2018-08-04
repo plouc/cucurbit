@@ -1,0 +1,12 @@
+{
+  "name": "cucurbit-basic-example",
+  "private": true,
+  "version": "0.0.0",
+  "main": "run.js",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@ekino/veggies": "^0.6.0",
+    "cucurbit-server": "1.0.0-alpha.0"
+  }
+}

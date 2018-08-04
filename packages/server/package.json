@@ -7,9 +7,8 @@
     "cors": "^2.8.4",
     "cucumber": "^4.2.1",
     "express": "^4.16.3",
-    "gherkin": "^5.1.0",
+    "glob": "^7.1.2",
     "lodash": "^4.17.10",
-    "recursive-readdir": "^2.2.2",
     "socket.io": "^2.1.1"
   }
 }

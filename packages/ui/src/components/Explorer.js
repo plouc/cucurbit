@@ -1,6 +1,7 @@
 import React, { Fragment, Component } from 'react'
 import styled from 'styled-components'
-import { Folder, Box, ChevronRight, ChevronDown } from 'react-feather'
+import { Folder, ChevronRight, ChevronDown } from 'react-feather'
+import StatusIcon from './StatusIcon'
 
 const iconSize = 14
 const iconSpacing = 7
@@ -56,11 +57,17 @@ class Node extends Component {
     }
 
     render() {
-        const { node, depth, onClick, onDoubleClick } = this.props
+        const { node, report, depth, onClick, onDoubleClick } = this.props
 
         const isDir = node.type === 'dir'
         const { isOpened } = node
         const hasChild = isDir && node.children.length > 0
+
+        let status
+        if (!isDir && report) {
+            const featureReport = report.find(r => r.uri === node.uri)
+            status = featureReport.status
+        }
 
         return (
             <Fragment>
@@ -74,17 +81,33 @@ class Node extends Component {
                     {isDir && (
                         <Icons>
                             {isOpened ? (
-                                <ChevronDown color="#aaa" size={iconSize} />
+                                <ChevronDown
+                                    color="#aaa"
+                                    size={iconSize}
+                                    style={{ flexShrink: 0 }}
+                                />
                             ) : (
-                                <ChevronRight color="#aaa" size={iconSize} />
+                                <ChevronRight
+                                    color="#aaa"
+                                    size={iconSize}
+                                    style={{ flexShrink: 0 }}
+                                />
                             )}
-                            {isDir && <Folder color="#015e75" size={iconSize} />}
+                            {isDir && (
+                                <Folder color="#015e75" size={iconSize} style={{ flexShrink: 0 }} />
+                            )}
                         </Icons>
                     )}
                     {!isDir && (
-                        <Box size={iconSize} color="#48ceee" style={{ marginRight: iconSpacing }} />
+                        <StatusIcon
+                            size={iconSize}
+                            status={status}
+                            style={{ flexShrink: 0, marginRight: iconSpacing }}
+                        />
                     )}
-                    {node.name}
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {node.name} {status}
+                    </span>
                 </Name>
                 {hasChild &&
                     isOpened && (
@@ -93,6 +116,7 @@ class Node extends Component {
                                 <Node
                                     key={child.name}
                                     node={child}
+                                    report={report}
                                     depth={depth + 1}
                                     onClick={onClick}
                                     onDoubleClick={onDoubleClick}
@@ -133,13 +157,18 @@ export default class Explorer extends Component {
     }
 
     render() {
-        const { dir, onSelect, style } = this.props
+        const { dir, report, onSelect, style } = this.props
 
         if (dir === undefined) return null
 
         return (
             <Container style={style}>
-                <Node node={dir} onClick={this.handleClick} onDoubleClick={onSelect} />
+                <Node
+                    node={dir}
+                    report={report}
+                    onClick={this.handleClick}
+                    onDoubleClick={onSelect}
+                />
             </Container>
         )
     }

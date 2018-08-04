@@ -6,6 +6,7 @@ node_modules
 
 # production
 /packages/ui/build
+/packages/server/ui
 
 # logs
 npm-debug.log*

@@ -4,10 +4,12 @@
     "eslint": "^5.2.0",
     "eslint-plugin-react": "^7.10.0",
     "lerna": "^3.0.0-rc.0",
+    "nodemon": "^1.18.3",
     "prettier": "^1.14.0"
   },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "examples/*"
   ],
   "name": "cucumber-gui"
 }

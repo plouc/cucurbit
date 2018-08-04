@@ -3,15 +3,11 @@ import styled from 'styled-components'
 import { FileText } from 'react-feather'
 
 const Header = styled.header`
-    height: 40px;
-    background: #01313f;
     color: #657b83;
     display: flex;
     align-items: center;
     overflow: hidden;
     font-size: 14px;
-    padding: 0 20px 0 12px;
-    border-bottom: 1px solid #00222b;
     display: flex;
     align-items: center;
 `
@@ -20,13 +16,13 @@ const FileName = styled.span`
     color: #eee;
 `
 
-export default class EditorFilePath extends Component {
+export default class CurrentUri extends Component {
     render() {
-        const { path } = this.props
+        const { uri } = this.props
 
         let content = null
-        if (path) {
-            const parts = path.split('/')
+        if (uri) {
+            const parts = uri.split('/')
             const fileName = parts.pop()
             content = (
                 <Fragment>

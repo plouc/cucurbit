@@ -52,42 +52,29 @@ init: ##@global cleanup/install/bootstrap
     endif
 	@$(MAKE) bootstrap
 	@$(MAKE) link
+	@$(MAKE) bundle
 
-bootstrap: ##@global lerna bootstrap
+ls: ##@global list packages
+	@echo "$(YELLOW)Available packages:$(RESET)"
+	@$(NODE_MODULES_BIN)/lerna ls
+
+bootstrap:
 	@$(NODE_MODULES_BIN)/lerna bootstrap
 
-link: ##@global symlink packages
+link:
 	@$(NODE_MODULES_BIN)/lerna link
 
-changed: ##@global symlink packages
+changed:
 	@$(NODE_MODULES_BIN)/lerna changed
-
-lint: ##@global lint all packages
-	@echo "$(YELLOW)running linter on packages: $(WHITE)$(PACKAGES)$(RESET)"
-	@$(NODE_MODULES_BIN)/eslint \
-        "packages/**/*.js"
-	@echo "$(GREEN)✔ well done!${RESET}"
-	@echo ""
 
 fmt: ##@global format code using prettier
 	@echo "$(YELLOW)formatting packages: $(WHITE)$(PACKAGES)$(RESET)"
 	@$(NODE_MODULES_BIN)/prettier --color --write \
         "packages/**/*.{js,ts}"
 
-fmt-check: ##@global check if files were all formatted using prettier
-	@echo "$(YELLOW)checking formatting on packages: $(WHITE)$(PACKAGES)$(RESET)"
-	@$(NODE_MODULES_BIN)/prettier --list-different \
-        "packages/**/*.{js,ts}"
-	@echo "$(GREEN)✔ well done!${RESET}"
-	@echo ""
-
-ls: ##@global list packages
-	@echo "$(YELLOW)Available packages:$(RESET)"
-	@$(NODE_MODULES_BIN)/lerna ls
-
-clean: ##@global uninstall node modules, remove transpiled code & lock files
-	@rm -rf node_modules
-	@rm -rf package-lock.json
+clean:
+	@$(call clean_dir_all,.)
+	@$(call clean_dir_all,examples/basic)
 	@$(foreach pkg,$(PACKAGES),$(call clean_dir_all,packages/$(pkg)))
 
 define clean_dir_all
@@ -95,13 +82,38 @@ define clean_dir_all
 	rm -rf $(1)/package-lock.json
 endef
 
-ok: ##@global run linters formatting check and test on all packages
+dev: ##@global start dev mode
+	@$(MAKE) MAKEFLAGS="-j 2" ui-start example-start-dev-basic
+
+bundle: ##@global bundle all
+	@$(MAKE) ui-build
+	@rm -rf packages/server/ui
+	@cp -r packages/ui/build packages/server/ui
+
+########################################################################################################################
+#
+# Check
+#
+########################################################################################################################
+
+ok: ##@check run linters formatting check and test on all packages
 	@$(MAKE) fmt-check
 	@$(MAKE) lint
 	@echo "$(GREEN)✔ everything's fine!${RESET}"
 
-dev: ##@global start dev mode
-	@$(MAKE) MAKEFLAGS="-j 2" ui-start server-start
+fmt-check: ##@check check if files were all formatted using prettier
+	@echo "$(YELLOW)checking formatting on packages: $(WHITE)$(PACKAGES)$(RESET)"
+	@$(NODE_MODULES_BIN)/prettier --list-different \
+        "packages/**/*.{js,ts}"
+	@echo "$(GREEN)✔ well done!${RESET}"
+	@echo ""
+
+lint: ##@check lint all packages
+	@echo "$(YELLOW)running linter on packages: $(WHITE)$(PACKAGES)$(RESET)"
+	@$(NODE_MODULES_BIN)/eslint \
+        "packages/**/*.js"
+	@echo "$(GREEN)✔ well done!${RESET}"
+	@echo ""
 
 ########################################################################################################################
 #
@@ -111,14 +123,23 @@ dev: ##@global start dev mode
 
 ui-start: ##@ui start UI react app
 	@echo "$(YELLOW)starting UI dev mode$(RESET)"
-	@cd packages/ui && yarn start
+	@cd packages/ui && yarn run start
+
+ui-build: ##@ui build UI
+	@echo "$(YELLOW)building UI$(RESET)"
+	@cd packages/ui && yarn run build
 
 ########################################################################################################################
 #
-# Server
+# Examples
 #
 ########################################################################################################################
 
-server-start: ##@server start node server
-	@echo "$(YELLOW)starting node server$(RESET)"
-	@cd packages/server && node app.js
+example-start-dev-%: ##@examples start node server for given example in dev mode
+	@echo "$(YELLOW)starting node server (watch mode) for example $(WHITE)$(*)$(RESET)"
+	@$(NODE_MODULES_BIN)/nodemon examples/$(*)/run.js
+
+example-start-%: ##@examples start node server for given example
+	@echo "$(YELLOW)starting node server for example $(WHITE)$(*)$(RESET)"
+	@cd examples/$(*) && node src/run.js
+

@@ -6,4 +6,11 @@ export const getFeaturesDir = () =>
     }).then(r => r.json())
 
 export const loadFeature = path =>
-    fetch(`${API_URL}/features/${encodeURIComponent(path)}`).then(r => r.json())
+    fetch(`${API_URL}/features/${encodeURIComponent(path)}`, {
+        method: 'GET',
+    }).then(r => r.json())
+
+export const runTests = () =>
+    fetch(`${API_URL}/run`, {
+        method: 'POST',
+    }).then(r => r.json())
