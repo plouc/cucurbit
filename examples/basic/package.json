@@ -1,5 +1,6 @@
 {
   "name": "cucurbit-basic-example",
+  "version": "1.0.0-alpha.0",
   "private": true,
   "main": "run.js",
   "devDependencies": {
