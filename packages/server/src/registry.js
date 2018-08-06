@@ -7,22 +7,27 @@ const { computeFeaturesTree } = require('./tree')
 const { getStepDefinitions } = require('./step_definitions')
 
 class Registry {
-    constructor({ cwd, cucumberArgs = [], featuresDir = 'features' }) {
+    constructor({ cwd, cucumberArgs = [], featuresDir = 'features' }, logger) {
         this.cwd = cwd
         this.cucumberArgs = cucumberArgs
         this.featuresDir = featuresDir
+        this.logger = logger
     }
 
     async load() {
         if (this.loader !== undefined) return this.loader
 
+        this.logger.info(`loading features`)
+
         this.loader = (async () => {
             const stepDefinitions = await getStepDefinitions(this.cwd, this.cucumberArgs)
+            this.logger.debug(`${stepDefinitions.length} step definitions found`)
 
             const featurePaths = await glob(`${this.featuresDir}/**/*.feature`, {
                 absolute: true,
                 cwd: this.cwd,
             })
+            this.logger.debug(`${featurePaths.length} feature files found`)
 
             const eventBroadcaster = new EventEmitter()
 
@@ -80,13 +85,13 @@ class Registry {
 
             eventBroadcaster.removeAllListeners()
             this.loader = undefined
+
+            this.logger.info(`successfully loaded features`)
         })()
     }
 
     async getOrLoad(key) {
-        if (this[key] !== undefined) {
-            return this[key]
-        }
+        if (this[key] !== undefined) return this[key]
 
         await this.load()
 

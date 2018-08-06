@@ -2,7 +2,7 @@ const { Writable } = require('stream')
 const { Cli } = require('cucumber')
 const { normalizeReport } = require('./report')
 
-exports.run = async (cwd, args = []) => {
+exports.run = async (logger, cwd, args = []) => {
     let output = ''
     const outStream = new Writable({
         write(chunk, encoding, callback) {
@@ -10,6 +10,8 @@ exports.run = async (cwd, args = []) => {
             callback()
         },
     })
+
+    logger.debug(`cucumber cli args: ${['-f', 'json', ...args].join(' ')}`)
 
     const cli = new Cli({
         argv: [...process.argv, '-f', 'json', ...args],

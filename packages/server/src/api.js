@@ -1,15 +1,33 @@
 const express = require('express')
 const cors = require('cors')
+const { createLogger, format, transports } = require('winston')
 const Registry = require('./registry')
 const { run } = require('./wrap_cli')
 
 exports.start = async options => {
+    const logger = createLogger({
+        level: 'debug',
+        format: format.combine(
+            format.colorize(),
+            format.splat(),
+            format.simple(),
+        ),
+        transports: [
+            new transports.Console(),
+        ]
+    })
+
+    logger.info('starting cucurbit server', options)
+
+
     const app = express()
 
-    const registry = new Registry(options)
+    const registry = new Registry(options, logger)
     await registry.load()
 
     app.use(cors())
+
+    app.use(express.static(`${__dirname}/../ui`))
 
     app.get('/features', async (req, res) => {
         const tree = await registry.getTree()
@@ -51,12 +69,14 @@ exports.start = async options => {
     })
 
     app.post('/run', async (req, res) => {
-        const output = await run(options.cwd, [...options.cucumberArgs, options.featuresDir])
+        logger.info('running tests')
+        const output = await run(logger, options.cwd, [...options.cucumberArgs, options.featuresDir])
+        logger.info('tests finished')
 
         res.status(200).send(output)
     })
 
     app.listen(5000, () => {
-        console.log('Example app listening on port 5000!')
+        logger.info('Example app listening on port 5000!')
     })
 }
