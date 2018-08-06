@@ -6,4 +6,31 @@
 
 ![UI screenshot](https://raw.githubusercontent.com/plouc/cucurbit/master/ui.png)
 
+## Installation
+
+```
+npm i -g cucurbit
+```
+
+## Usage
+
+Assuming you've got an existing project with the following structure:
+
+```
+my_project/
+  tests/
+    features/
+    support/
+```
+
+You can run
+
+```
+cucurbit start --require tests/support --features tests/features
+```
+
+This will start the cucurbit server and launch the UI
+(both available on default port: 5000).
+
+You can run `cucurbit --help` for additional help about the cli.
 
