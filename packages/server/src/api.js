@@ -3,10 +3,11 @@ const cors = require('cors')
 const Registry = require('./registry')
 const { run } = require('./wrap_cli')
 
-exports.start = options => {
+exports.start = async options => {
     const app = express()
 
     const registry = new Registry(options)
+    await registry.load()
 
     app.use(cors())
 
@@ -14,6 +15,18 @@ exports.start = options => {
         const tree = await registry.getTree()
 
         res.status(200).send(tree)
+    })
+
+    app.get('/step_definitions', async (req, res) => {
+        const stepDefinitions = await registry.getStepDefinitions()
+
+        res.status(200).send(
+            stepDefinitions.map(def => ({
+                line: def.line,
+                pattern: def.pattern.toString(),
+                uri: def.uri,
+            }))
+        )
     })
 
     app.get('/features/:uri', async (req, res) => {
@@ -38,7 +51,7 @@ exports.start = options => {
     })
 
     app.post('/run', async (req, res) => {
-        const output = await run(options.cwd, options.cucumberArgs)
+        const output = await run(options.cwd, [...options.cucumberArgs, options.featuresDir])
 
         res.status(200).send(output)
     })

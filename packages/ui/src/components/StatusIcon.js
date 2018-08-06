@@ -17,7 +17,7 @@ export default class StatusIcon extends Component {
         if (status === undefined || status === null) {
             if (type === 'feature') return <Layers {...props} />
             if (type === 'scenario') return <Box {...props} />
-            return <span/>
+            return <span />
         }
 
         if (status === 'passed') return <Check {...props} />

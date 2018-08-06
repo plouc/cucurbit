@@ -2,7 +2,7 @@ import React, { Fragment, Component } from 'react'
 import styled from 'styled-components'
 
 const Container = styled.div`
-    margin: 9px 16px;
+    margin: 9px 16px 9px 41px;
     padding: 9px 16px;
     display: grid;
     grid-column-gap: 9px;

@@ -18,9 +18,7 @@ export default class ScenarioSteps extends Component {
                         stepReport = report.steps.find(s => s.line === step.location.line)
                     }
 
-                    return (
-                        <ScenarioStepsItem key={i} step={step} report={stepReport}/>
-                    )
+                    return <ScenarioStepsItem key={i} step={step} report={stepReport} />
                 })}
             </Container>
         )

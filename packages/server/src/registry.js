@@ -2,70 +2,111 @@ const EventEmitter = require('events')
 const { promisify } = require('util')
 const glob = promisify(require('glob'))
 const { getTestCasesFromFilesystem, PickleFilter } = require('cucumber')
+const { ParameterTypeRegistry } = require('cucumber-expressions')
 const { computeFeaturesTree } = require('./tree')
+const { getStepDefinitions } = require('./step_definitions')
 
 class Registry {
-    constructor({ cwd, featuresDir = 'features', supportDir = 'support' }) {
+    constructor({ cwd, cucumberArgs = [], featuresDir = 'features' }) {
         this.cwd = cwd
+        this.cucumberArgs = cucumberArgs
         this.featuresDir = featuresDir
-        this.supportDir = supportDir
     }
 
     async load() {
-        const featurePaths = await glob(`${this.featuresDir}/**/*.feature`, {
-            absolute: true,
-            cwd: this.cwd,
-        })
+        if (this.loader !== undefined) return this.loader
 
-        const eventBroadcaster = new EventEmitter()
+        this.loader = (async () => {
+            const stepDefinitions = await getStepDefinitions(this.cwd, this.cucumberArgs)
 
-        this.features = []
-        eventBroadcaster.on('gherkin-document', doc => {
-            this.features.push(doc)
-        })
+            const featurePaths = await glob(`${this.featuresDir}/**/*.feature`, {
+                absolute: true,
+                cwd: this.cwd,
+            })
 
-        this.featureSources = []
-        eventBroadcaster.on('source', source => {
-            this.featureSources.push(source)
-        })
+            const eventBroadcaster = new EventEmitter()
 
-        this.pickles = await getTestCasesFromFilesystem({
-            cwd: this.cwd,
-            featurePaths,
-            eventBroadcaster,
-            order: 'defined',
-            pickleFilter: new PickleFilter({
+            const features = []
+            eventBroadcaster.on('gherkin-document', doc => {
+                features.push(doc)
+            })
+
+            const featureSources = []
+            eventBroadcaster.on('source', source => {
+                featureSources.push(source)
+            })
+
+            this.pickles = await getTestCasesFromFilesystem({
+                cwd: this.cwd,
                 featurePaths,
-            }),
-        })
+                eventBroadcaster,
+                order: 'defined',
+                pickleFilter: new PickleFilter({
+                    featurePaths,
+                }),
+            })
 
-        this.tree = computeFeaturesTree(this.features)
+            this.stepDefinitions = stepDefinitions
+            this.features = features
+            this.featureSources = featureSources
+            this.tree = computeFeaturesTree(this.features)
+
+            const parameterTypeRegistry = new ParameterTypeRegistry()
+            this.features.forEach(feature => {
+                feature.document.feature.children.forEach(scenario => {
+                    scenario.steps.forEach(step => {
+                        const defs = stepDefinitions.filter(stepDefinition =>
+                            stepDefinition.matchesStepName({
+                                stepName: step.text,
+                                parameterTypeRegistry,
+                            })
+                        )
+
+                        if (defs.length === 1) {
+                            const def = defs[0]
+                            const params = def.getInvocationParameters({
+                                step: { ...step, arguments: [] },
+                                parameterTypeRegistry,
+                                world: {},
+                            })
+                            step.definition = {
+                                pattern: def.pattern.toString(),
+                                params,
+                            }
+                        }
+                    })
+                })
+            })
+
+            eventBroadcaster.removeAllListeners()
+            this.loader = undefined
+        })()
+    }
+
+    async getOrLoad(key) {
+        if (this[key] !== undefined) {
+            return this[key]
+        }
+
+        await this.load()
+
+        return this[key]
+    }
+
+    async getStepDefinitions() {
+        return this.getOrLoad('stepDefinitions')
     }
 
     async getTree() {
-        if (this.tree !== undefined) {
-            return this.tree
-        }
-
-        await this.load()
-
-        return this.tree
+        return this.getOrLoad('tree')
     }
 
     async getFeatures() {
-        if (this.features === undefined) {
-            return this.features
-        }
-
-        await this.load()
-
-        return this.features
+        return this.getOrLoad('features')
     }
 
     async getFeature(uri) {
-        if (this.features === undefined) {
-            await this.load()
-        }
+        await this.getFeatures()
 
         const feature = this.features.find(feature => feature.uri === uri)
         const source = this.featureSources.find(source => source.uri === uri)

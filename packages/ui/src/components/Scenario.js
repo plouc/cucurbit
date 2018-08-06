@@ -54,12 +54,10 @@ export default class Scenario extends Component {
                         status={report ? report.status : null}
                         size={16}
                         type="scenario"
-                        style={{ opacity: isOpened ? 1 : .5 }}
+                        style={{ opacity: isOpened ? 1 : 0.5 }}
                     />
-                    <span>
-                        {scenario.name}
-                    </span>
-                    {isOpened ? <ChevronDown size={16}/> : <ChevronRight size={16}/>}
+                    <span>{scenario.name}</span>
+                    {isOpened ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                 </Header>
                 {isOpened && (
                     <Content>

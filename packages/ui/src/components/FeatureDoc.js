@@ -62,7 +62,9 @@ export default class FeatureDoc extends Component {
                 {scenarios.map(scenario => {
                     let scenarioReport
                     if (featureReport) {
-                        scenarioReport = featureReport.scenarios.find(s => s.line === scenario.location.line)
+                        scenarioReport = featureReport.scenarios.find(
+                            s => s.line === scenario.location.line
+                        )
                     }
 
                     return (

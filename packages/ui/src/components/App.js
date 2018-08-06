@@ -1,17 +1,18 @@
 import React, { Component } from 'react'
 import styled, { injectGlobal } from 'styled-components'
-import { getFeaturesDir, loadFeature, runTests } from '../api'
+import { getFeaturesDir, getStepDefinitions, loadFeature, runTests } from '../api'
 import {
     PANEL_EXPLORER,
     PANEL_EDITOR,
     PANEL_INFO,
-    PANEL_CONSOLE,
+    PANEL_DEFINITIONS,
     computeLayout,
 } from '../lib/layout'
 import AppBar from './AppBar'
 import Explorer from './Explorer'
 import Editor from './Editor'
 import FeatureDoc from './FeatureDoc'
+import StepDefinitions from './StepDefinitions'
 
 injectGlobal`
 body {
@@ -60,7 +61,12 @@ export default class App extends Component {
             feature: null,
             report: null,
             isRunning: false,
-            panels: [PANEL_EXPLORER, PANEL_INFO],
+            panels: [
+                PANEL_EXPLORER,
+                PANEL_EDITOR,
+                PANEL_INFO,
+                // PANEL_DEFINITIONS,
+            ],
         }
     }
 
@@ -72,6 +78,10 @@ export default class App extends Component {
                     isOpened: true,
                 },
             })
+        })
+
+        getStepDefinitions().then(stepDefinitions => {
+            this.setState({ stepDefinitions })
         })
     }
 
@@ -110,7 +120,15 @@ export default class App extends Component {
     }
 
     render() {
-        const { report, panels, featuresDir, file, feature, isRunning } = this.state
+        const {
+            report,
+            panels,
+            featuresDir,
+            stepDefinitions,
+            file,
+            feature,
+            isRunning,
+        } = this.state
 
         const layout = computeLayout(panels)
 
@@ -145,8 +163,11 @@ export default class App extends Component {
                         report={report}
                     />
                 )}
-                {panels.includes(PANEL_CONSOLE) && (
-                    <div style={layout.panels[PANEL_CONSOLE]}>CONSOLE</div>
+                {panels.includes(PANEL_DEFINITIONS) && (
+                    <StepDefinitions
+                        style={layout.panels[PANEL_DEFINITIONS]}
+                        stepDefinitions={stepDefinitions}
+                    />
                 )}
             </Grid>
         )

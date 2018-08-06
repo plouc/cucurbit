@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
-import { Folder, FileText, Info, Play, Clock } from 'react-feather'
-import { PANEL_EXPLORER, PANEL_EDITOR, PANEL_INFO } from '../lib/layout'
+import { Folder, FileText, Info, Play, Clock, HelpCircle } from 'react-feather'
+import { PANEL_EXPLORER, PANEL_EDITOR, PANEL_INFO, PANEL_DEFINITIONS } from '../lib/layout'
 import AppBarPanelToggle from './AppBarPanelToggle'
 import CurrentUri from './CurrentUri'
 
@@ -74,14 +74,12 @@ export default class AppBar extends Component {
                         onToggle={onPanelToggle}
                         isActive={panels.includes(PANEL_INFO)}
                     />
-                    {/*
                     <AppBarPanelToggle
-                        Icon={Terminal}
-                        panel={PANEL_CONSOLE}
+                        Icon={HelpCircle}
+                        panel={PANEL_DEFINITIONS}
                         onToggle={onPanelToggle}
-                        isActive={panels.includes(PANEL_CONSOLE)}
+                        isActive={panels.includes(PANEL_DEFINITIONS)}
                     />
-                    */}
                     {isRunning && (
                         <RunButton isRunning={true}>
                             <Clock size={18} style={{ marginRight: 6 }} />

@@ -1,7 +1,7 @@
 export const PANEL_EXPLORER = 'explorer'
 export const PANEL_EDITOR = 'editor'
 export const PANEL_INFO = 'info'
-export const PANEL_CONSOLE = 'console'
+export const PANEL_DEFINITIONS = 'definitions'
 
 export const computeLayout = currentPanels => {
     let columnsTemplate = []
@@ -17,7 +17,7 @@ export const computeLayout = currentPanels => {
         [PANEL_INFO]: {
             gridColumnStart: 1,
         },
-        [PANEL_CONSOLE]: {
+        [PANEL_DEFINITIONS]: {
             gridColumnStart: 1,
         },
     }
@@ -47,7 +47,7 @@ export const computeLayout = currentPanels => {
         rowsTemplate.push('1fr')
     }
 
-    if (currentPanels.includes(PANEL_CONSOLE)) {
+    if (currentPanels.includes(PANEL_DEFINITIONS)) {
         if (
             (currentPanels.includes(PANEL_EXPLORER) && columnsTemplate.length === 1) ||
             columnsTemplate.length === 0
@@ -56,9 +56,9 @@ export const computeLayout = currentPanels => {
         }
         rowsTemplate.push('1fr')
         if (currentPanels.includes(PANEL_EXPLORER)) {
-            panels[PANEL_CONSOLE].gridColumnStart = 2
+            panels[PANEL_DEFINITIONS].gridColumnStart = 2
         }
-        panels[PANEL_CONSOLE].gridColumnEnd = columnsTemplate.length + 1
+        panels[PANEL_DEFINITIONS].gridColumnEnd = columnsTemplate.length + 1
     }
 
     if (rowsTemplate.length === 3) {

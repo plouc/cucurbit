@@ -5,6 +5,11 @@ export const getFeaturesDir = () =>
         method: 'GET',
     }).then(r => r.json())
 
+export const getStepDefinitions = () =>
+    fetch(`${API_URL}/step_definitions`, {
+        method: 'GET',
+    }).then(r => r.json())
+
 export const loadFeature = path =>
     fetch(`${API_URL}/features/${encodeURIComponent(path)}`, {
         method: 'GET',

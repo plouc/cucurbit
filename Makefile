@@ -141,5 +141,5 @@ example-start-dev-%: ##@examples start node server for given example in dev mode
 
 example-start-%: ##@examples start node server for given example
 	@echo "$(YELLOW)starting node server for example $(WHITE)$(*)$(RESET)"
-	@cd examples/$(*) && node src/run.js
+	@cd examples/$(*) && node run.js
 
