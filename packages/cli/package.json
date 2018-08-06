@@ -1,6 +1,6 @@
 {
   "name": "cucurbit",
-  "version": "1.0.0-alpha.6",
+  "version": "1.0.0-alpha.7",
   "repository": {
     "type": "git",
     "url": "git://github.com/plouc/cucurbit"
@@ -10,7 +10,7 @@
   "dependencies": {
     "chalk": "^2.4.1",
     "commander": "^2.17.0",
-    "cucurbit-server": "^1.0.0-alpha.6",
+    "cucurbit-server": "^1.0.0-alpha.7",
     "react-dev-utils": "^5.0.1"
   },
   "bin": {

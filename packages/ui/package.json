@@ -1,6 +1,6 @@
 {
   "name": "cucurbit-ui",
-  "version": "1.0.0-alpha.6",
+  "version": "1.0.0-alpha.7",
   "private": true,
   "proxy": "http://localhost:5000",
   "dependencies": {
