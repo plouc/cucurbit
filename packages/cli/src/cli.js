@@ -16,7 +16,7 @@ const defaultOptParser = val => val
 
 const handleError = err => {
     console.error()
-    console.error(err.message || err)
+    console.error(chalk.red(err.message) || err)
     console.error()
     if (err.stack) {
         console.error(err.stack)
@@ -32,11 +32,9 @@ const printUnknownCommand = cmdName => {
             cmdName
                 ? chalk.red(`  Unrecognized command '${cmdName}'`)
                 : chalk.red(`  You didn't pass any command`),
-            `  Run ${chalk.cyan(
-                'cucurbit --help',
-            )} to see list of all available commands`,
+            `  Run ${chalk.cyan('cucurbit --help')} to see list of all available commands`,
             '',
-        ].join('\n'),
+        ].join('\n')
     )
 }
 
@@ -62,8 +60,8 @@ const registerCommand = command => {
             opt.command,
             opt.description,
             opt.parse || defaultOptParser,
-            typeof opt.default === 'function' ? opt.default() : opt.default,
-        ),
+            typeof opt.default === 'function' ? opt.default() : opt.default
+        )
     )
 }
 
@@ -72,9 +70,7 @@ async function run() {
 
     commander.parse(process.argv)
 
-    const isValidCommand = commands.find(
-        cmd => cmd.name.split(' ')[0] === process.argv[2],
-    )
+    const isValidCommand = commands.find(cmd => cmd.name.split(' ')[0] === process.argv[2])
 
     if (!isValidCommand) {
         printUnknownCommand(process.argv[2])

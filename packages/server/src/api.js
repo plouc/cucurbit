@@ -2,40 +2,44 @@ const express = require('express')
 const cors = require('cors')
 const { createLogger, format, transports } = require('winston')
 const Registry = require('./registry')
-const { run } = require('./wrap_cli')
+const { runCli } = require('./wrap_cli')
 
-exports.start = async options => {
+exports.start = async ({
+    cwd = process.cwd(),
+    port = 5000,
+    featurePaths = ['features'],
+    requirePaths = [],
+    cucumberArgs = [],
+    logLevel = 'info',
+}) => {
     const logger = createLogger({
-        level: 'debug',
-        format: format.combine(
-            format.colorize(),
-            format.splat(),
-            format.simple(),
-        ),
-        transports: [
-            new transports.Console(),
-        ]
+        level: logLevel,
+        format: format.combine(format.colorize(), format.splat(), format.simple()),
+        transports: [new transports.Console()],
     })
 
-    logger.info('starting cucurbit server', options)
-
+    const registry = new Registry({
+        cwd,
+        featurePaths,
+        requirePaths,
+        cucumberArgs,
+        logger,
+    })
+    await registry.load()
 
     const app = express()
-
-    const registry = new Registry(options, logger)
-    await registry.load()
 
     app.use(cors())
 
     app.use(express.static(`${__dirname}/../ui`))
 
-    app.get('/features', async (req, res) => {
+    app.get('/api/features', async (req, res) => {
         const tree = await registry.getTree()
 
         res.status(200).send(tree)
     })
 
-    app.get('/step_definitions', async (req, res) => {
+    app.get('/api/step_definitions', async (req, res) => {
         const stepDefinitions = await registry.getStepDefinitions()
 
         res.status(200).send(
@@ -47,7 +51,7 @@ exports.start = async options => {
         )
     })
 
-    app.get('/features/:uri', async (req, res) => {
+    app.get('/api/features/:uri', async (req, res) => {
         const { uri } = req.params
         try {
             const feature = await registry.getFeature(uri)
@@ -68,15 +72,16 @@ exports.start = async options => {
         }
     })
 
-    app.post('/run', async (req, res) => {
-        logger.info('running tests')
-        const output = await run(logger, options.cwd, [...options.cucumberArgs, options.featuresDir])
-        logger.info('tests finished')
+    app.post('/api/run', async (req, res) => {
+        const output = await runCli({
+            cli: registry.getCliInstance(),
+            logger,
+        })
 
         res.status(200).send(output)
     })
 
-    app.listen(5000, () => {
-        logger.info('Example app listening on port 5000!')
+    app.listen(port, () => {
+        logger.info(`[server] cucurbit-server listening on port ${port}!`)
     })
 }

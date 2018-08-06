@@ -61,6 +61,7 @@ export default class App extends Component {
             feature: null,
             report: null,
             isRunning: false,
+            isDirty: false,
             panels: [
                 PANEL_EXPLORER,
                 PANEL_EDITOR,
@@ -86,11 +87,28 @@ export default class App extends Component {
     }
 
     handleFileSelect = file => {
-        this.setState({ file, feature: null })
+        this.setState({
+            file,
+            feature: null,
+            isDirty: false,
+        })
 
         loadFeature(file.uri).then(feature => {
-            this.setState({ feature })
+            this.setState({
+                feature,
+                isDirty: false,
+            })
         })
+    }
+
+    handleEditorChange = newValue => {
+        const { feature } = this.state
+        if (!feature) return
+
+        const isDirty = feature.source !== newValue
+        if (isDirty !== this.state.isDirty) {
+            this.setState({ isDirty })
+        }
     }
 
     handlePanelToggle = panel => {
@@ -154,6 +172,7 @@ export default class App extends Component {
                         style={layout.panels[PANEL_EDITOR]}
                         ref={this.editor}
                         featureSource={feature ? feature.source : ''}
+                        onChange={this.handleEditorChange}
                     />
                 )}
                 {panels.includes(PANEL_INFO) && (

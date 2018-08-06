@@ -10,7 +10,8 @@
   "dependencies": {
     "chalk": "^2.4.1",
     "commander": "^2.17.0",
-    "cucurbit-server": "^1.0.0-alpha.5"
+    "cucurbit-server": "^1.0.0-alpha.5",
+    "react-dev-utils": "^5.0.1"
   },
   "bin": {
     "cucurbit": "./bin/cucurbit"

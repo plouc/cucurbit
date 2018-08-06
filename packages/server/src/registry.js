@@ -1,93 +1,105 @@
 const EventEmitter = require('events')
-const { promisify } = require('util')
-const glob = promisify(require('glob'))
 const { getTestCasesFromFilesystem, PickleFilter } = require('cucumber')
 const { ParameterTypeRegistry } = require('cucumber-expressions')
 const { computeFeaturesTree } = require('./tree')
 const { getStepDefinitions } = require('./step_definitions')
+const { getCli } = require('./wrap_cli')
 
 class Registry {
-    constructor({ cwd, cucumberArgs = [], featuresDir = 'features' }, logger) {
+    constructor({ cwd, featurePaths, requirePaths, cucumberArgs, logger }) {
+        logger.debug('[registry] initializing registry')
+        logger.debug(`[registry] cwd '%s'`, cwd)
+        logger.debug(`[registry] featurePaths '%s'`, featurePaths.join(`', '`))
+        logger.debug(`[registry] requirePaths '%s'`, requirePaths.join(`', '`))
+        logger.debug(
+            `[registry] cucumberArgs %s`,
+            cucumberArgs.length > 0 ? cucumberArgs.join(', ') : '<none>'
+        )
+
         this.cwd = cwd
-        this.cucumberArgs = cucumberArgs
-        this.featuresDir = featuresDir
+        this.featurePaths = featurePaths
+        this.requirePaths = requirePaths
         this.logger = logger
     }
 
+    getCliInstance() {
+        return getCli({
+            cwd: this.cwd,
+            featurePaths: this.featurePaths,
+            requirePaths: this.requirePaths,
+            logger: this.logger,
+        })
+    }
+
     async load() {
-        if (this.loader !== undefined) return this.loader
+        this.logger.debug(`[registry] loading features`)
 
-        this.logger.info(`loading features`)
+        const cli = this.getCliInstance()
 
-        this.loader = (async () => {
-            const stepDefinitions = await getStepDefinitions(this.cwd, this.cucumberArgs)
-            this.logger.debug(`${stepDefinitions.length} step definitions found`)
+        const config = await cli.getConfiguration()
 
-            const featurePaths = await glob(`${this.featuresDir}/**/*.feature`, {
-                absolute: true,
-                cwd: this.cwd,
-            })
-            this.logger.debug(`${featurePaths.length} feature files found`)
+        const stepDefinitions = await getStepDefinitions({
+            cli,
+            config,
+            logger: this.logger,
+        })
 
-            const eventBroadcaster = new EventEmitter()
+        this.logger.debug(`[registry] found ${config.featurePaths.length} matching feature files`)
 
-            const features = []
-            eventBroadcaster.on('gherkin-document', doc => {
-                features.push(doc)
-            })
+        const features = []
+        const featureSources = []
 
-            const featureSources = []
-            eventBroadcaster.on('source', source => {
-                featureSources.push(source)
-            })
+        const eventBroadcaster = new EventEmitter()
+        eventBroadcaster.on('gherkin-document', doc => {
+            features.push(doc)
+        })
+        eventBroadcaster.on('source', source => {
+            featureSources.push(source)
+        })
 
-            this.pickles = await getTestCasesFromFilesystem({
-                cwd: this.cwd,
-                featurePaths,
-                eventBroadcaster,
-                order: 'defined',
-                pickleFilter: new PickleFilter({
-                    featurePaths,
-                }),
-            })
+        this.pickles = await getTestCasesFromFilesystem({
+            cwd: this.cwd,
+            featurePaths: config.featurePaths,
+            eventBroadcaster,
+            order: config.order,
+            pickleFilter: new PickleFilter(config.pickleFilterOptions),
+        })
 
-            this.stepDefinitions = stepDefinitions
-            this.features = features
-            this.featureSources = featureSources
-            this.tree = computeFeaturesTree(this.features)
+        this.stepDefinitions = stepDefinitions
+        this.features = features
+        this.featureSources = featureSources
+        this.tree = computeFeaturesTree(this.features)
 
-            const parameterTypeRegistry = new ParameterTypeRegistry()
-            this.features.forEach(feature => {
-                feature.document.feature.children.forEach(scenario => {
-                    scenario.steps.forEach(step => {
-                        const defs = stepDefinitions.filter(stepDefinition =>
-                            stepDefinition.matchesStepName({
-                                stepName: step.text,
-                                parameterTypeRegistry,
-                            })
-                        )
+        const parameterTypeRegistry = new ParameterTypeRegistry()
+        this.features.forEach(feature => {
+            feature.document.feature.children.forEach(scenario => {
+                scenario.steps.forEach(step => {
+                    const defs = stepDefinitions.filter(stepDefinition =>
+                        stepDefinition.matchesStepName({
+                            stepName: step.text,
+                            parameterTypeRegistry,
+                        })
+                    )
 
-                        if (defs.length === 1) {
-                            const def = defs[0]
-                            const params = def.getInvocationParameters({
-                                step: { ...step, arguments: [] },
-                                parameterTypeRegistry,
-                                world: {},
-                            })
-                            step.definition = {
-                                pattern: def.pattern.toString(),
-                                params,
-                            }
+                    if (defs.length === 1) {
+                        const def = defs[0]
+                        const params = def.getInvocationParameters({
+                            step: { ...step, arguments: [] },
+                            parameterTypeRegistry,
+                            world: {},
+                        })
+                        step.definition = {
+                            pattern: def.pattern.toString(),
+                            params,
                         }
-                    })
+                    }
                 })
             })
+        })
 
-            eventBroadcaster.removeAllListeners()
-            this.loader = undefined
+        eventBroadcaster.removeAllListeners()
 
-            this.logger.info(`successfully loaded features`)
-        })()
+        this.logger.info(`[registry] found ${features.length} features`)
     }
 
     async getOrLoad(key) {

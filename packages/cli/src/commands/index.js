@@ -1,3 +1,1 @@
-module.exports = [
-    require('./start'),
-]
+module.exports = [require('./start')]

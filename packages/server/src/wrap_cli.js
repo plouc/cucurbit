@@ -2,25 +2,30 @@ const { Writable } = require('stream')
 const { Cli } = require('cucumber')
 const { normalizeReport } = require('./report')
 
-exports.run = async (logger, cwd, args = []) => {
-    let output = ''
-    const outStream = new Writable({
-        write(chunk, encoding, callback) {
-            output += chunk.toString()
-            callback()
-        },
+exports.getCli = ({ cwd, featurePaths, requirePaths, logger }) => {
+    const args = ['-f', 'json']
+    requirePaths.forEach(p => {
+        args.push('--require', p)
+    })
+    featurePaths.forEach(p => {
+        args.push(p)
     })
 
-    logger.debug(`cucumber cli args: ${['-f', 'json', ...args].join(' ')}`)
+    logger.debug(`[get_cli] cucumber args: %s`, args.join(' '))
 
     const cli = new Cli({
-        argv: [...process.argv, '-f', 'json', ...args],
+        argv: [...process.argv, ...args],
         cwd,
-        stdout: outStream,
+        stdout: new Writable({}),
     })
 
-    const config = await cli.getConfiguration()
+    return cli
+}
 
+exports.runCli = async ({ cli, logger }) => {
+    logger.info(`[run_cli] running tests`)
+
+    const config = await cli.getConfiguration()
     config.supportCodePaths.forEach(p => {
         delete require.cache[p]
     })
@@ -28,7 +33,16 @@ exports.run = async (logger, cwd, args = []) => {
         delete require.cache[p]
     })
 
-    await cli.run()
+    let output = ''
+    cli.stdout = new Writable({
+        write(chunk, encoding, callback) {
+            output += chunk.toString()
+            callback()
+        },
+    })
+
+    const { success } = await cli.run()
+    logger.info(`[run_cli] tests ended ${success ? 'successfully' : 'with error'}`)
 
     const report = JSON.parse(output)
 

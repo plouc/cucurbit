@@ -5,12 +5,15 @@ import 'brace/mode/gherkin'
 import 'brace/theme/solarized_dark'
 
 export default class Editor extends Component {
-    handleChange = newValue => {
-        //console.log({ newValue })
+    shouldComponentUpdate(nextProps) {
+        return (
+            nextProps.featureSource !== this.props.featureSource ||
+            nextProps.style.gridColumnStart !== this.props.style.gridColumnStart
+        )
     }
 
     render() {
-        const { featureSource, style } = this.props
+        const { featureSource, onChange, style } = this.props
 
         return (
             <div style={{ ...style, overflow: 'hidden' }}>
@@ -19,12 +22,14 @@ export default class Editor extends Component {
                     mode="gherkin"
                     theme="solarized_dark"
                     value={featureSource}
-                    onChange={this.handleChange}
+                    onChange={onChange}
                     name="editor"
                     showPrintMargin={false}
                     showGutter={false}
                     highlightActiveLine={true}
-                    editorProps={{ $blockScrolling: true }}
+                    editorProps={{
+                        $blockScrolling: Infinity,
+                    }}
                     fontSize={13}
                     wrapEnabled={false}
                     width="100%"
